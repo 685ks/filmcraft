@@ -23,7 +23,7 @@ Exactly three colours:
 
 ## Provenance
 
-The owner drew it in ArtCraft as a 2880 px engraving-style image. The original is kept in craftrules
+The upstream owner drew it as a 2880 px engraving-style image. The original is kept in craftrules
 at `craftrules/assets/app-icons/filmcraft/source.png` (not in this repo). It was vectorised with
 craftrules `assets/logo-options/_tools/vectorize_tile.py`, which keys the drawing to the three-colour
 palette and traces the ink with potrace. Licence: [LICENSE.txt](LICENSE.txt) (MIT OR Apache-2.0).

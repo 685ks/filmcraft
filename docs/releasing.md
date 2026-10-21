@@ -1,12 +1,26 @@
 # Releasing FilmCraft
 
+> **This fork (685ks/filmcraft) releases differently from upstream.** Run **Actions > Release >
+> Run workflow** with the version (the `[workspace.package] version` in `Cargo.toml`, e.g.
+> `0.10.0`). `.github/workflows/release.yml` calls the shared Arthavan Projects workflow
+> `685ks/craft-actions/.github/workflows/release-rust-app.yml@main` (package `filmcraft`, binary
+> `filmcraft`), which reads `packaging/app.toml`, builds Windows x64 (`.msi`, `-portable.zip`),
+> macOS universal (`.dmg`) and Linux x86_64/aarch64 (`.AppImage`, `.tar.gz`, `.deb`, `.rpm`), and
+> creates the release `v<version>` with `SHA256SUMS.txt`, an SBOM and build provenance (a draft
+> unless `publish` is ticked). Assets are named `filmcraft-<version>-<os>-<arch>[-portable].<ext>`.
+> The Arthavan Projects launcher installs and updates FilmCraft from these releases; the app has
+> no updater of its own, and About says "Updates are managed by Arthavan Projects" when the
+> launcher started it (`ARTHAVAN_LAUNCHER=1`). The upstream process below (the `release` branch,
+> FreeBSD, web and Windows ARM64 builds) is kept for reference and for the packaging scripts it
+> describes.
+
 Every push to the `release` branch runs `.github/workflows/release.yml`. The workflow builds
 installers for macOS, Windows, Linux (AppImage, deb, rpm, tarball, Flatpak) and FreeBSD, plus
 the web build, and creates or updates a **draft**
 GitHub Release named `FilmCraft v<version>`. Nobody sees a draft until a maintainer publishes it.
 
 User-facing names say **FilmCraft**. Files, binaries and ids stay lowercase
-(`filmcraft-<version>-<platform>-<arch>.<ext>`, `ai.storyteller.filmcraft`).
+(`filmcraft-<version>-<platform>-<arch>.<ext>`, `app.freedev.ainz.ks.FilmCraft`).
 
 ## Cutting a release
 
@@ -58,7 +72,7 @@ signing jobs are refused, and the draft-release job, which needs them, is skippe
 
 `filmcraft --version` and `filmcraft-cli --version` print the version from `Cargo.toml`.
 
-**Fonts.** Every build job checks out [craft-fonts](https://github.com/storytold/craft-fonts) at a
+**Fonts.** Every build job checks out [craft-fonts](https://github.com/685ks/craft-fonts) at a
 pinned commit (the `ref:` of its craft-fonts checkout step, marked `# bump deliberately`) and builds
 with `CRAFT_FONTS_DIR` and `CRAFT_FONTS_REQUIRED=1`, so releases embed its Japanese fonts and fail
 rather than ship without them (the web build embeds only the UI font, to stay small). The packages
@@ -70,7 +84,7 @@ deliberately, in every job at once.
 `packaging/macos/package.sh` builds `aarch64-apple-darwin` and `x86_64-apple-darwin` with
 `MACOSX_DEPLOYMENT_TARGET=11.0`, joins them with `lipo` and assembles `FilmCraft.app`:
 
-- `Info.plist` is generated from `Info.plist.in` (bundle id `ai.storyteller.filmcraft`, the
+- `Info.plist` is generated from `Info.plist.in` (bundle id `app.freedev.ainz.ks.FilmCraft`, the
   version and the build commit).
 - **Signing** uses the hardened runtime and a secure timestamp, with the entitlements in
   `entitlements.plist`. The Developer ID certificate is imported into a temporary keychain by
@@ -133,15 +147,15 @@ release. The job checks both with `--appimage-updateinformation` and `test -s`.
 
 **Flatpak.** The `flatpak` jobs (x86_64 on `ubuntu-24.04`, aarch64 on `ubuntu-24.04-arm`) run
 `packaging/linux/flatpak-bundle.sh` on the Linux job's tarball: it installs the binaries with
-`packaging/linux/flatpak/ai.storyteller.filmcraft.bundle.yml` into a single-file bundle,
+`packaging/linux/flatpak/app.freedev.ainz.ks.FilmCraft.bundle.yml` into a single-file bundle,
 `filmcraft-<v>-linux-<arch>.flatpak` (no Rust build, so it takes a minute), then installs it and
 runs `filmcraft-cli --version` in the sandbox. Users install it with
 `flatpak install --user <file>`; the freedesktop runtime comes from Flathub.
-`packaging/linux/flatpak/ai.storyteller.filmcraft.yml` is the from-source manifest for a Flathub
+`packaging/linux/flatpak/app.freedev.ainz.ks.FilmCraft.yml` is the from-source manifest for a Flathub
 submission (its header says how to build it). Both manifests must keep the same runtime and
 `finish-args`, and install the same programs: the app and `filmcraft-cli`, which runs the
 headless commands and the MCP server in the sandbox
-(`flatpak run --command=filmcraft-cli ai.storyteller.filmcraft mcp`). packaging-lint checks this.
+(`flatpak run --command=filmcraft-cli app.freedev.ainz.ks.FilmCraft mcp`). packaging-lint checks this.
 
 ### FreeBSD
 

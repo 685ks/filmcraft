@@ -23,9 +23,12 @@ and write wherever the user can.
 
 ```sh
 cargo build --release -p filmcraft-cli -p filmcraft
-./target/release/filmcraft --control 9876 &      # only for the bridge server
+FILMCRAFT_CONTROL_TOKEN_FILE=$HOME/.filmcraft-control.token ./target/release/filmcraft --control 9876 &      # only for the bridge server
 claude                                           # approve the project MCP servers when asked
 ```
+
+The control port needs the app's token (`docs/control-protocol.md` › Authentication); the bridge
+server reads it from the same `FILMCRAFT_CONTROL_TOKEN_FILE`, which `.mcp.json` sets.
 
 To register the server by hand, or for another MCP client, use the absolute binary path:
 

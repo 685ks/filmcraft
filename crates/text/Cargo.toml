@@ -21,3 +21,8 @@ unicode-bidi = "0.3.18"
 unicode-linebreak = "0.1.5"
 # UAX #29 extended grapheme clusters (MIT OR Apache-2.0).
 unicode-segmentation = "1.13"
+
+[build-dependencies]
+# The shared craft-fonts build helper (no dependencies of its own); embeds the optional
+# CRAFT_FONTS_DIR checkout. Pinned to a commit of Arthavan Projects' craft-fonts; bump deliberately.
+craft-fonts-build = { git = "https://github.com/685ks/craft-fonts", rev = "f28afbb766ccddc9cfd136b8cf0b451a24149e1b" }

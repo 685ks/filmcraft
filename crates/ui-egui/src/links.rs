@@ -1,30 +1,35 @@
-//! Community and project links (Help menu, About dialog, header Discord button, Home screen).
+//! Project links (Help menu, About dialog, Home screen).
 //!
-//! FilmCraft is part of the ArtCraft family: the community lives on the ArtCraft Discord, every
-//! app has a page on the ArtCraft website and a public GitHub repository.
+//! This build is a fork of storytold/filmcraft, maintained by Arthavan Projects; its links point at
+//! the fork's repository.
 
-/// The app's short name, used in the website and repository URLs.
+/// The app's short name, used in the repository URLs.
 pub const APP: &str = "filmcraft";
 
-/// The ArtCraft community Discord.
-pub const DISCORD: &str = "https://discord.gg/artcraft";
-/// The ArtCraft website.
-pub const WEBSITE: &str = "https://getartcraft.com";
-/// FilmCraft's page on the ArtCraft website.
-pub const APP_PAGE: &str = "https://getartcraft.com/apps/filmcraft";
-/// FilmCraft's source repository.
-pub const GITHUB: &str = "https://github.com/storytold/filmcraft";
+/// FilmCraft's source repository (this fork).
+pub const GITHUB: &str = "https://github.com/685ks/filmcraft";
 /// New issue on FilmCraft's repository.
-pub const ISSUES: &str = "https://github.com/storytold/filmcraft/issues";
+pub const ISSUES: &str = "https://github.com/685ks/filmcraft/issues";
+/// The project this build is a fork of (named in the About box).
+pub const UPSTREAM: &str = "https://github.com/storytold/filmcraft";
+/// The About box's provenance line. A legal notice, shown in English in every UI language.
+pub const FORK_NOTE: &str = "A fork of storytold/filmcraft, not affiliated with or endorsed by ArtCraft.";
+/// Shown in About when the Arthavan Projects launcher started the app (`ARTHAVAN_LAUNCHER=1`).
+/// FilmCraft has no updater of its own; the launcher installs and updates it from the
+/// 685ks/filmcraft releases.
+pub const LAUNCHER_UPDATES_NOTE: &str = "Updates are managed by Arthavan Projects";
+
+/// Whether the Arthavan Projects launcher started this process.
+pub fn launcher_managed() -> bool {
+    launcher_managed_from(std::env::var("ARTHAVAN_LAUNCHER").ok().as_deref())
+}
+
+fn launcher_managed_from(value: Option<&str>) -> bool {
+    value.is_some_and(|v| v.trim() == "1")
+}
 
 /// (command id, label, url) for every link, in menu order.
-pub const ALL: [(&str, &str, &str); 5] = [
-    ("help.discord", "Join the ArtCraft Discord…", DISCORD),
-    ("help.website", "ArtCraft Website", WEBSITE),
-    ("help.appPage", "FilmCraft on getartcraft.com", APP_PAGE),
-    ("help.github", "FilmCraft on GitHub", GITHUB),
-    ("help.reportIssue", "Report an Issue…", ISSUES),
-];
+pub const ALL: [(&str, &str, &str); 2] = [("help.github", "FilmCraft on GitHub", GITHUB), ("help.reportIssue", "Report an Issue…", ISSUES)];
 
 /// A link the web browser couldn't open (`ui.failedLink`): the address and the reason.
 #[derive(Clone, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -49,7 +54,7 @@ pub fn menu_hint(command: &str) -> Option<String> {
         match command {
             "help.revealLogFiles" => tl!("Saves this session's log and shows it in your file manager."),
             "help.systemCompatibilityReport" => tl!("Shows a report on this computer."),
-            "app.about" => tl!("Shows the version, community links and credits in a FilmCraft window."),
+            "app.about" => tl!("Shows the version, project links and credits in a FilmCraft window."),
             _ => return None,
         }
         .to_string(),
@@ -125,17 +130,37 @@ mod tests {
     use super::*;
 
     #[test]
-    fn urls_follow_the_artcraft_scheme() {
-        assert_eq!(APP_PAGE, format!("{WEBSITE}/apps/{APP}"));
-        assert_eq!(GITHUB, format!("https://github.com/storytold/{APP}"));
+    fn urls_point_at_the_fork() {
+        assert_eq!(GITHUB, format!("https://github.com/685ks/{APP}"));
         assert!(ALL.iter().all(|(id, _, u)| id.starts_with("help.") && u.starts_with("https://")));
-        assert_eq!(url_for("help.discord"), Some(DISCORD));
+        assert_eq!(url_for("help.github"), Some(GITHUB));
+        assert_eq!(url_for("help.discord"), None);
         assert_eq!(url_for("help.nope"), None);
+    }
+
+    /// This fork carries no ArtCraft community or website links (house rebrand rule).
+    #[test]
+    fn no_link_points_at_artcraft_or_storyteller_services() {
+        for (id, label, url) in ALL {
+            for banned in ["artcraft", "discord", "storyteller"] {
+                assert!(!url.to_ascii_lowercase().contains(banned), "{id} -> {url}");
+                assert!(!label.to_ascii_lowercase().contains(banned), "{id}: {label}");
+                assert!(!id.to_ascii_lowercase().contains(banned), "{id}");
+            }
+        }
+    }
+
+    #[test]
+    fn launcher_flag_is_read_from_arthavan_launcher() {
+        assert!(launcher_managed_from(Some("1")));
+        assert!(!launcher_managed_from(None));
+        assert!(!launcher_managed_from(Some("0")));
+        assert!(!launcher_managed_from(Some("")));
     }
 
     #[test]
     fn links_open_through_the_host_hook() {
-        // #642: on the desktop every link (Help menu, About, Discord button, Import screen) must
+        // #642: on the desktop every link (Help menu, About, Import screen) must
         // reach the host's browser opener; `ctx.open_url` alone is a no-op natively.
         use std::cell::RefCell;
         use std::rc::Rc;
@@ -152,8 +177,8 @@ mod tests {
             assert_eq!(r["url"], url, "{id}");
             assert_eq!(opened.borrow().last().map(String::as_str), Some(url), "{id}");
         }
-        open(&mut app, &ctx, DISCORD);
-        assert_eq!(opened.borrow().last().map(String::as_str), Some(DISCORD));
+        open(&mut app, &ctx, UPSTREAM);
+        assert_eq!(opened.borrow().last().map(String::as_str), Some(UPSTREAM));
         assert_eq!(opened.borrow().len(), ALL.len() + 1);
 
         // A failing opener falls back to `ctx.open_url` instead of losing the click.

@@ -13,8 +13,32 @@ nothing sent after it on that connection runs. That covers text that isn't JSON,
 an object without `method`, invalid UTF-8, and a line longer than 4 MiB. An HTTP request (for example a
 web page's cross-origin `fetch` to `127.0.0.1:<port>`) therefore can't smuggle a command in its body:
 its request line is rejected first. At most 16 connections are served at once; further ones get an error
-line and are closed. Clients that get an error reply should reconnect. The port has no authentication,
-so only enable it while you use it. Transport: `apps/filmcraft/src/control_server.rs`.
+line and are closed. Clients that get an error reply should reconnect. Transport:
+`apps/filmcraft/src/control_server.rs`.
+
+**Authentication.** Every connection's first request must carry the launch's bearer token:
+
+```json
+{"id": "auth", "method": "auth", "params": {"token": "<64 hexadecimal characters>"}}
+{"id": "auth", "ok": true, "result": {"authenticated": true}}
+```
+
+Any other first request, or a wrong token, gets `{"ok": false, "error": "authentication required"}`
+and the connection is closed; nothing is dispatched. Tokens are compared in constant time. The app
+takes the token from `FILMCRAFT_CONTROL_TOKEN`, else from the file named by
+`FILMCRAFT_CONTROL_TOKEN_FILE` (an existing file is reused; a missing one is created with a fresh
+256-bit token, mode `0600` on Unix), else it makes a fresh token for that launch and prints it on
+standard error (`filmcraft: control token: …`). Prefer the token file: it keeps the token out of
+process listings. `filmcraft-cli --bridge` and `filmcraft-cli mcp --bridge` read the same two
+variables and authenticate each connection:
+
+```sh
+FILMCRAFT_CONTROL_TOKEN_FILE=~/.filmcraft-control.token filmcraft --control 9876 &
+FILMCRAFT_CONTROL_TOKEN_FILE=~/.filmcraft-control.token filmcraft-cli mcp --bridge 127.0.0.1:9876
+```
+
+Anyone holding the token can drive the whole control surface (UI input, commands, file access), so
+keep the file private and only enable the port while you use it.
 
 ```json
 {"id": 1, "method": "engine.execute", "params": {"command": "sequence.addEdit", "params": {"seconds": 3}}}

@@ -985,7 +985,7 @@ mod tests {
         h.get_by_label("Light").click();
         h.run_steps(3);
         assert_eq!(h.state().session.prefs.appearance.appearance_mode, "light");
-        assert_eq!(h.state().session.prefs.appearance.dark_theme, "darkest");
+        assert_eq!(h.state().session.prefs.appearance.dark_theme, "house");
     }
 
     /// #457: on a desktop that reports 150%, UI Scale 100% makes a point one physical pixel. It is
@@ -1017,7 +1017,7 @@ mod tests {
         let ctx = egui::Context::default();
         let mut app = FilmcraftApp::new(filmcraft_engine::Session::default());
         app.apply_prefs(&ctx);
-        assert_eq!((app.session.prefs.appearance.appearance_mode.as_str(), app.tokens.kind), ("dark", ThemeKind::Dark), "new users keep Darkest");
+        assert_eq!((app.session.prefs.appearance.appearance_mode.as_str(), app.tokens.kind), ("dark", ThemeKind::House), "new users get the house theme");
         app.session.execute("prefs.set", json!({"values": {"appearance.darkTheme": "dark"}})).unwrap();
         app.hooks.system_theme = Some(Box::new(|_| Some(egui::Theme::Dark)));
         for (mode, shown) in [("auto", ThemeKind::Medium), ("light", ThemeKind::Light), ("dark", ThemeKind::Medium), ("auto", ThemeKind::Medium)] {
@@ -1056,19 +1056,19 @@ mod tests {
         assert_eq!(ctx.theme(), egui::Theme::Light, "egui's style follows FilmCraft's choice");
         system.store(1, Ordering::Relaxed);
         app.apply_prefs(&ctx);
-        assert_eq!(app.tokens.kind, ThemeKind::Dark);
+        assert_eq!(app.tokens.kind, ThemeKind::House);
         assert_eq!(ctx.theme(), egui::Theme::Dark);
         system.store(2, Ordering::Relaxed);
         app.apply_prefs(&ctx);
         assert_eq!(app.tokens.kind, ThemeKind::Light);
         system.store(0, Ordering::Relaxed);
         app.apply_prefs(&ctx);
-        assert_eq!(app.tokens.kind, ThemeKind::Dark, "no answer: dark");
+        assert_eq!(app.tokens.kind, ThemeKind::House, "no answer: dark");
         // a fixed mode ignores the system
         app.session.execute("prefs.set", json!({"key": "appearance.appearanceMode", "value": "dark"})).unwrap();
         system.store(2, Ordering::Relaxed);
         app.apply_prefs(&ctx);
-        assert_eq!(app.tokens.kind, ThemeKind::Dark);
+        assert_eq!(app.tokens.kind, ThemeKind::House);
     }
 
     #[test]

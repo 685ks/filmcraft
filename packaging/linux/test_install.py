@@ -12,7 +12,7 @@ import unittest
 
 
 HERE = Path(__file__).resolve().parent
-APP_ID = "ai.storyteller.filmcraft"
+APP_ID = "app.freedev.ainz.ks.FilmCraft"
 
 
 class InstallTests(unittest.TestCase):

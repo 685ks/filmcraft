@@ -22,7 +22,7 @@ label; `ja.tsv`, `fr.tsv`, `pt-br.tsv` and `de.tsv` have the same entries but ar
 entry without a Spanish one). Engine error messages, the
 control channel, the CLI and MCP stay English.
 
-Fonts come from [craft-fonts](https://github.com/storytold/craft-fonts) (`CRAFT_FONTS_DIR`, all
+Fonts come from [craft-fonts](https://github.com/685ks/craft-fonts) (`CRAFT_FONTS_DIR`, all
 official releases) or an installed system face; without one, switching to Japanese or Chinese is
 refused with a message. Simplified Chinese is picked for `zh`, `zh-CN`, `zh-SG`, `zh-Hans`, not
 Traditional locales. Ukrainian uses the bundled Cyrillic interface fonts. Vertical text in titles

@@ -1,0 +1,13 @@
+# Packaging metadata read by the shared release workflow
+# (685ks/craft-actions/.github/workflows/release-rust-app.yml, called from
+# .github/workflows/release.yml). Asset names: filmcraft-<version>-<os>-<arch>[-portable].<ext>.
+id = "filmcraft"
+display_name = "FilmCraft"
+bundle_id = "app.freedev.ainz.ks.FilmCraft"
+publisher = "Arthavan Projects"
+description = "A non-linear video editor: timeline editing, color, effects, titles, captions and sound"
+categories = ["AudioVideo", "Video", "AudioVideoEditing"]
+icon_png = "assets/app-icon/hicolor/512x512/apps/app.freedev.ainz.ks.FilmCraft.png"
+icon_icns = "assets/app-icon/filmcraft.icns"
+icon_ico = "assets/app-icon/filmcraft.ico"
+license = "MIT OR Apache-2.0"
