@@ -30,7 +30,6 @@ macro_rules! tlf {
 }
 
 pub mod automation;
-pub mod brand;
 pub mod calc;
 mod cjk;
 pub mod control;
@@ -546,7 +545,7 @@ impl FilmcraftApp {
         Self {
             session,
             ui: UiState { language, ..UiState::default() },
-            tokens: Tokens::for_kind(ThemeKind::Dark),
+            tokens: Tokens::for_kind(ThemeKind::House),
             frames,
             playback: Playback { speed: 1.0, ..Default::default() },
             source_playback: Default::default(),

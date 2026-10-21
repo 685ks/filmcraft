@@ -24,7 +24,7 @@ pub static JETBRAINS_MONO_REGULAR: &[u8] = include_bytes!("../../../assets/fonts
 pub static NOTO_SERIF_REGULAR: &[u8] = include_bytes!("../../../assets/fonts/NotoSerif-Regular.ttf");
 
 /// A font from the optional craft-fonts build input (empty unless built with `CRAFT_FONTS_DIR`; see
-/// `build.rs` and storytold/craft-fonts `docs/integration.md`).
+/// `build.rs` and 685ks/craft-fonts `docs/integration.md`).
 pub struct CraftFont {
     pub family: &'static str,
     pub style: &'static str,

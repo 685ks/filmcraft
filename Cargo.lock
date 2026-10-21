@@ -1017,6 +1017,16 @@ version = "0.1.0"
 source = "git+https://github.com/storytold/craft-libs?rev=82a24b006eefa036b43c09a67fb9a3fbd17ffe63#82a24b006eefa036b43c09a67fb9a3fbd17ffe63"
 
 [[package]]
+name = "craft-fonts-build"
+version = "0.1.0"
+source = "git+https://github.com/685ks/craft-fonts?rev=f28afbb766ccddc9cfd136b8cf0b451a24149e1b#f28afbb766ccddc9cfd136b8cf0b451a24149e1b"
+
+[[package]]
+name = "craft-tokens"
+version = "0.1.0"
+source = "git+https://github.com/685ks/craft-libs?tag=v0.1.0#5b1852d2a611b6161827babecc71e27c214af95f"
+
+[[package]]
 name = "craft-ui"
 version = "0.1.0"
 source = "git+https://github.com/storytold/craft-libs?rev=5c874d51eeb3de70e735c8ce87a59a7dedd47675#5c874d51eeb3de70e735c8ce87a59a7dedd47675"
@@ -1694,6 +1704,7 @@ dependencies = [
  "filmcraft-render",
  "filmcraft-time",
  "filmcraft-ui-egui",
+ "getrandom 0.3.4",
  "glob",
  "log",
  "muda",
@@ -2282,6 +2293,7 @@ dependencies = [
 name = "filmcraft-text"
 version = "0.10.0"
 dependencies = [
+ "craft-fonts-build",
  "filmcraft-color",
  "harfrust",
  "skrifa",
@@ -2325,6 +2337,7 @@ name = "filmcraft-ui-egui"
 version = "0.10.0"
 dependencies = [
  "cpu-time",
+ "craft-tokens",
  "craft-ui",
  "eframe",
  "egui",

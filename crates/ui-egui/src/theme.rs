@@ -1,7 +1,10 @@
 //! Design tokens. Every widget reads colours/sizes from [`Tokens`] so themes apply everywhere.
 //!
-//! The default theme follows the look of Premiere Pro's current dark UI (values measured from
-//! black-box screenshots, see `plan/premiere/02-ui-ux.md`); fonts are Inter + JetBrains Mono (OFL).
+//! The default theme is **Arthavan Dark** ([`ThemeKind::House`]), the Arthavan Projects design
+//! system from `craft-tokens` (steel-blue accent on near-black, gold playhead) on the editor's
+//! own layout. Darkest, Dark and Light follow the look of the reference editor's current UI (values
+//! measured from black-box screenshots, see `plan/premiere/02-ui-ux.md`). Fonts are Inter +
+//! JetBrains Mono (OFL).
 
 use std::sync::Arc;
 
@@ -10,8 +13,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ThemeKind {
-    /// Premiere-style darkest (default).
+    /// The house theme (default): the Arthavan Projects design system, built from `craft-tokens`.
     #[default]
+    House,
+    /// Premiere-style darkest.
     Dark,
     /// Slightly lighter grey panels (Premiere's brightness slider mid position).
     Medium,
@@ -19,9 +24,10 @@ pub enum ThemeKind {
 }
 
 impl ThemeKind {
-    /// Settings ▸ Appearance ▸ Color Theme value (`darkest`, `dark`, `light`).
+    /// Settings ▸ Appearance ▸ Color Theme value (`house`, `darkest`, `dark`, `light`).
     pub fn pref_name(self) -> &'static str {
         match self {
+            ThemeKind::House => "house",
             ThemeKind::Dark => "darkest",
             ThemeKind::Medium => "dark",
             ThemeKind::Light => "light",
@@ -29,13 +35,15 @@ impl ThemeKind {
     }
     pub fn from_pref(s: &str) -> ThemeKind {
         match s {
+            "house" => ThemeKind::House,
             "dark" => ThemeKind::Medium,
             "light" => ThemeKind::Light,
             _ => ThemeKind::Dark,
         }
     }
     pub fn from_name(s: &str) -> Option<ThemeKind> {
-        match s.to_ascii_lowercase().as_str() {
+        match s.to_ascii_lowercase().replace([' ', '_', '-'], "").as_str() {
+            "house" | "arthavan" | "arthavandark" => Some(ThemeKind::House),
             "dark" | "darkest" => Some(ThemeKind::Dark),
             "medium" | "grey" | "gray" => Some(ThemeKind::Medium),
             "light" => Some(ThemeKind::Light),
@@ -242,6 +250,7 @@ impl Tokens {
             tab_h: 32.0,
         };
         match kind {
+            ThemeKind::House => Tokens::house(dark),
             ThemeKind::Dark => dark,
             ThemeKind::Medium => Tokens {
                 app_bg: Color32::from_rgb(20, 20, 20),
@@ -333,10 +342,87 @@ impl Tokens {
         }
     }
 
+    /// The house theme, filled from `craft-tokens` (the field mapping of the design system's
+    /// ADOPTION.md section 2) on top of `dark` for the audio and plot details it does not name.
+    /// Translucent web surfaces are flattened onto the surface below them, since egui cannot blur
+    /// what is behind a panel. The accent fills (selections, primary buttons, track targeting) use
+    /// the deep steel blue so white labels stay readable; focus, timecodes and hot text use the
+    /// light steel blue; the playhead is gold.
+    fn house(dark: Tokens) -> Self {
+        use craft_tokens::{Rgba, color, radius};
+        let c = |x: Rgba| Color32::from_rgba_unmultiplied(x.r, x.g, x.b, x.a);
+        let bg = color::BG_BASE;
+        let panel = color::SURFACE_PANEL.over(bg);
+        let on_panel = |x: Rgba| c(x.over(panel));
+        let white = |alpha: f32| Rgba::rgb(255, 255, 255).with_alpha(alpha).over(panel);
+        Tokens {
+            kind: ThemeKind::House,
+            app_bg: c(bg),
+            header_bg: c(color::BG_SHEET),
+            panel_bg: c(panel),
+            tab_bg: c(panel),
+            tab_text: c(color::TEXT_MUTED),
+            tab_text_active: c(color::TEXT_INK),
+            focus: c(color::ACCENT_BASE),
+            accent: c(color::ACCENT_LOW),
+            accent_hover: c(color::ACCENT_BASE.with_alpha(0.25).over(color::ACCENT_LOW)),
+            text: c(color::TEXT_INK),
+            text_dim: c(color::TEXT_MUTED),
+            text_faint: c(color::TEXT_FAINT),
+            icon: c(color::TEXT_MUTED),
+            icon_active: c(color::TEXT_INK),
+            hover: on_panel(color::SURFACE_FILL_FOCUS),
+            pressed: c(white(0.12)),
+            field_bg: c(bg),
+            field_border: on_panel(color::BORDER_LINE),
+            separator: on_panel(color::BORDER_LINE_SOFT),
+            row_alt: on_panel(color::SURFACE_FILL_1),
+            row_selected: c(color::ACCENT_BASE.with_alpha(0.22).over(panel)),
+            hot_text: c(color::ACCENT_BASE),
+            pill_active_bg: c(white(0.14)),
+            clip_bar_bg: c(color::ACCENT_LOW.with_alpha(0.6).over(panel)),
+            control_surface: on_panel(color::SURFACE_FILL_3),
+            control_well: c(bg),
+            control_border: on_panel(color::BORDER_GEAR),
+            plot_bg: c(color::BG_SKY_BOTTOM),
+            plot_grid: on_panel(color::BORDER_LINE_SOFT),
+            plot_axis: on_panel(color::BORDER_LINE),
+            meter_readout_bg: c(color::BG_SHEET),
+            panner_bg: c(color::BG_SKY_BOTTOM),
+            keyframe_plot_bg: c(color::BG_SKY_BOTTOM),
+            keyframe_plot_grid: on_panel(color::BORDER_LINE_SOFT),
+            keyframe_plot_axis: on_panel(color::BORDER_LINE),
+            button_hover: on_panel(color::SURFACE_FILL_FOCUS),
+            button_border: on_panel(color::BORDER_LINE),
+            caption_track_bg: c(color::ACCENT_LOW.with_alpha(0.3).over(panel)),
+            disabled_clip_bg: c(white(0.08)),
+            tl_bg: c(panel),
+            tl_track_bg: c(panel),
+            tl_track_bg_alt: c(panel),
+            tl_header_bg: c(panel),
+            tl_ruler_bg: c(color::BG_SHEET),
+            tl_ruler_tick: c(color::TEXT_FAINT),
+            tl_ruler_text: c(color::TEXT_MUTED),
+            playhead: c(color::ACCENT_GOLD),
+            track_target: c(color::ACCENT_LOW),
+            in_out_shade: c(white(0.16)),
+            clip_selected_border: c(color::TEXT_INK),
+            // Neutral surround for the monitors: picture judgement needs it untinted.
+            monitor_bg: c(bg),
+            timecode: c(color::ACCENT_BASE),
+            danger: c(color::TIER_RED),
+            radius: radius::XS,
+            radius_sm: radius::XS,
+            ..dark
+        }
+    }
+
     /// Settings ▸ Appearance on top of a theme: the highlight colour (selections, primary buttons,
     /// the focus outline, the playhead, timecodes, drag values and track targeting) and accessible
     /// colour contrast (brighter secondary text and borders).
     pub fn with_appearance(mut self, highlight: Option<[u8; 3]>, accessible_contrast: bool) -> Self {
+        // The default highlight is the reference themes' blue; the house theme keeps its own.
+        let highlight = highlight.filter(|h| !(self.kind == ThemeKind::House && *h == DEFAULT_HIGHLIGHT_RGB));
         if let Some([r, g, b]) = highlight {
             let c = Color32::from_rgb(r, g, b);
             // A highlight of the user's own also colours the theme's other blues: the same hue, as
@@ -391,6 +477,10 @@ impl Tokens {
         FontId::new(16.0, FontFamily::Proportional)
     }
 }
+
+/// The RGB of Settings ▸ Appearance ▸ Highlight Color's default (`#2f6bdf`), which leaves the
+/// house theme's own accent.
+pub const DEFAULT_HIGHLIGHT_RGB: [u8; 3] = [0x2f, 0x6b, 0xdf];
 
 /// Menu text: Premiere's menus are the system's, larger and brighter than panel text, one item
 /// every 24 px.
@@ -521,6 +611,50 @@ mod tests {
 
     const JAPANESE: &str = "日本語の文字";
 
+    /// WCAG contrast ratio of two opaque colours.
+    fn contrast(a: Color32, b: Color32) -> f32 {
+        let lum = |c: Color32| {
+            let ch = |v: u8| {
+                let v = f32::from(v) / 255.0;
+                if v <= 0.03928 { v / 12.92 } else { ((v + 0.055) / 1.055).powf(2.4) }
+            };
+            0.2126 * ch(c.r()) + 0.7152 * ch(c.g()) + 0.0722 * ch(c.b())
+        };
+        let (x, y) = (lum(a), lum(b));
+        (x.max(y) + 0.05) / (x.min(y) + 0.05)
+    }
+
+    #[test]
+    fn the_house_theme_is_the_default_and_comes_from_craft_tokens() {
+        assert_eq!(ThemeKind::default(), ThemeKind::House);
+        for name in ["house", "Arthavan Dark", "arthavan"] {
+            assert_eq!(ThemeKind::from_name(name), Some(ThemeKind::House), "{name}");
+        }
+        assert_eq!(ThemeKind::from_pref(ThemeKind::House.pref_name()), ThemeKind::House);
+        let t = Tokens::for_kind(ThemeKind::House);
+        assert_eq!(t.kind, ThemeKind::House);
+        // values from the design system (tokens.json), not hand-picked
+        assert_eq!(t.focus, Color32::from_rgb(0x8f, 0xb8, 0xd8), "steel-blue focus");
+        assert_eq!(t.timecode, Color32::from_rgb(0x8f, 0xb8, 0xd8), "steel-blue timecodes");
+        assert_eq!(t.playhead, Color32::from_rgb(0xd9, 0xc0, 0x8a), "gold playhead");
+        assert_eq!(t.app_bg, Color32::from_rgb(0x07, 0x09, 0x0d));
+        assert_eq!(t.monitor_bg, t.app_bg, "neutral monitor surround");
+        assert_eq!(t.text, Color32::from_rgb(0xef, 0xfc, 0xff));
+        // readable: text on every surface that carries it, white labels on accent fills
+        for bg in [t.app_bg, t.header_bg, t.panel_bg, t.field_bg, t.hover, t.row_alt, t.row_selected, t.tl_track_bg, t.tl_ruler_bg] {
+            assert!(contrast(t.text, bg) >= 4.5, "text on {bg:?}");
+            assert!(contrast(t.text_dim, bg) >= 4.5, "dim text on {bg:?}");
+            assert!(contrast(t.timecode, bg) >= 4.5, "timecode on {bg:?}");
+        }
+        for fill in [t.accent, t.accent_hover, t.track_target] {
+            assert!(contrast(Color32::WHITE, fill) >= 4.5, "white on {fill:?}");
+        }
+        // the default highlight keeps the house accent; a highlight of one's own replaces it
+        let shown = t.with_appearance(Some(DEFAULT_HIGHLIGHT_RGB), false);
+        assert_eq!((shown.accent, shown.focus, shown.playhead), (t.accent, t.focus, t.playhead));
+        assert_eq!(t.with_appearance(Some([0xe0, 0x45, 0x7b]), false).accent, Color32::from_rgb(0xe0, 0x45, 0x7b));
+    }
+
     fn installed() -> egui::Context {
         let ctx = egui::Context::default();
         install(&ctx, &Tokens::for_kind(ThemeKind::default()));
@@ -637,7 +771,7 @@ mod tests {
         ctx.run_ui(egui::RawInput::default(), |_| {}).textures_delta.clear();
     }
 
-    /// Typed, pasted or IME-composed Hangul draws real glyphs, not the missing-glyph box (artcraft#2093).
+    /// Typed, pasted or IME-composed Hangul draws real glyphs, not the missing-glyph box (upstream issue #2093).
     #[test]
     fn korean_text_renders_with_an_installed_korean_font() {
         const KOREAN: &str = "한국어 입력 테스트";

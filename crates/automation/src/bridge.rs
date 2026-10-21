@@ -1,5 +1,7 @@
 //! Client for the desktop app's JSON-lines control protocol. A connection per request in flight,
-//! reused once its reply is in; reconnect on failure.
+//! reused once its reply is in; reconnect on failure. Each connection authenticates first with the
+//! app's control token (`docs/control-protocol.md` › Authentication): `FILMCRAFT_CONTROL_TOKEN`, or
+//! the contents of the file named by `FILMCRAFT_CONTROL_TOKEN_FILE`.
 
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Duration;
@@ -25,6 +27,20 @@ pub struct BridgeClient {
     /// never holds up the others or leaves its late reply for the next one to read (#1538).
     idle: Mutex<Vec<Conn>>,
     next_id: AtomicU64,
+    /// The app's control token, sent as the first request on every connection.
+    token: Option<String>,
+}
+
+/// The control token from the environment: `FILMCRAFT_CONTROL_TOKEN`, else the file named by
+/// `FILMCRAFT_CONTROL_TOKEN_FILE`. `None` when neither is set (the app will refuse the connection).
+pub fn token_from_env() -> Result<Option<String>, AutomationError> {
+    if let Some(t) = std::env::var("FILMCRAFT_CONTROL_TOKEN").ok().map(|t| t.trim().to_string()).filter(|t| !t.is_empty()) {
+        return Ok(Some(t));
+    }
+    let Some(path) = std::env::var_os("FILMCRAFT_CONTROL_TOKEN_FILE").filter(|p| !p.is_empty()) else { return Ok(None) };
+    let text = std::fs::read_to_string(&path)
+        .map_err(|e| AutomationError::BadRequest(format!("FILMCRAFT_CONTROL_TOKEN_FILE {}: {e}", std::path::Path::new(&path).display())))?;
+    Ok(Some(text.trim().to_string()))
 }
 
 impl BridgeClient {
@@ -35,7 +51,13 @@ impl BridgeClient {
         if !matches!(host, "127.0.0.1" | "localhost" | "[::1]" | "::1") {
             return Err(AutomationError::BadRequest(format!("bridge address must be loopback, got `{addr}`")));
         }
-        Ok(Self { addr, idle: Mutex::new(Vec::new()), next_id: AtomicU64::new(1) })
+        Ok(Self { addr, idle: Mutex::new(Vec::new()), next_id: AtomicU64::new(1), token: token_from_env()? })
+    }
+
+    /// Use `token` to authenticate (instead of the one from the environment).
+    pub fn with_token(mut self, token: impl Into<String>) -> Self {
+        self.token = Some(token.into());
+        self
     }
 
     /// Run engine command `id` in the app. A blocking export (`file.exportMedia` with
@@ -122,7 +144,23 @@ impl BridgeClient {
             .map_err(|_| AutomationError::Bridge(format!("timed out connecting to {}", self.addr)))?
             .map_err(|e| AutomationError::Bridge(format!("cannot connect to {} ({e}); start the app with `filmcraft --control <port>`", self.addr)))?;
         let (r, w) = s.into_split();
-        Ok((BufReader::new(r), w))
+        let mut conn = (BufReader::new(r), w);
+        let Some(token) = self.token.as_deref() else { return Ok(conn) };
+        let line = format!("{}\n", json!({"id": "auth", "method": "auth", "params": {"token": token}}));
+        conn.1.write_all(line.as_bytes()).await.map_err(|e| AutomationError::Bridge(e.to_string()))?;
+        let mut buf = String::new();
+        tokio::time::timeout(Duration::from_secs(10), conn.0.read_line(&mut buf))
+            .await
+            .map_err(|_| AutomationError::Bridge("timed out authenticating".into()))?
+            .map_err(|e| AutomationError::Bridge(e.to_string()))?;
+        let reply: Value = serde_json::from_str(&buf).map_err(|e| AutomationError::Bridge(format!("bad reply: {e}")))?;
+        if reply.get("ok").and_then(Value::as_bool) != Some(true) {
+            return Err(AutomationError::Bridge(format!(
+                "the app refused the control token for {}; set FILMCRAFT_CONTROL_TOKEN or FILMCRAFT_CONTROL_TOKEN_FILE to the app's token",
+                self.addr
+            )));
+        }
+        Ok(conn)
     }
 }
 
@@ -170,6 +208,38 @@ mod tests {
             }
         });
         (addr, seen)
+    }
+
+    /// Every connection opens with the token (the app refuses anything else first).
+    #[tokio::test]
+    async fn each_connection_authenticates_first() {
+        let (addr, seen) = fake_app(json!(null)).await;
+        let token = "ab".repeat(32);
+        let b = BridgeClient::new(addr).unwrap().with_token(token.clone());
+        b.call("ui.inspect", json!({})).await.unwrap();
+        let seen = seen.lock().await;
+        assert_eq!(seen[0]["method"], "auth");
+        assert_eq!(seen[0]["params"]["token"], json!(token));
+        assert_eq!(seen[1]["method"], "ui.inspect");
+    }
+
+    /// A refused token is an error that says how to supply the right one.
+    #[tokio::test]
+    async fn a_refused_token_is_reported() {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap().to_string();
+        tokio::spawn(async move {
+            while let Ok((s, _)) = listener.accept().await {
+                let (r, mut w) = s.into_split();
+                let mut lines = BufReader::new(r).lines();
+                if let Ok(Some(_)) = lines.next_line().await {
+                    let _ = w.write_all(b"{\"ok\":false,\"error\":\"authentication required\"}\n").await;
+                }
+            }
+        });
+        let b = BridgeClient::new(addr).unwrap().with_token("0".repeat(64));
+        let e = b.call("ui.inspect", json!({})).await.unwrap_err();
+        assert!(e.to_string().contains("FILMCRAFT_CONTROL_TOKEN"), "{e}");
     }
 
     /// A blocking bridge export runs as an app job (#91, #92): the app never sees `wait: true` (it

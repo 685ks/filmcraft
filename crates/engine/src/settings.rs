@@ -88,7 +88,7 @@ impl Default for GeneralPrefs {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct AppearancePrefs {
-    /// Legacy single "Color Theme": `darkest` | `dark` | `light`. Setting it (old settings files,
+    /// Legacy single "Color Theme": `house` | `darkest` | `dark` | `light`. Setting it (old settings files,
     /// automation, View ▸ Appearance) selects that theme and fixes the mode to its family. It is
     /// kept in line with the fields below ([`AppearancePrefs::sync_color_theme`]): the light or
     /// dark theme of a fixed mode, and the dark theme in Auto (whose shown theme depends on the
@@ -96,7 +96,7 @@ pub struct AppearancePrefs {
     pub color_theme: String,
     /// "Appearance Mode": `auto` (follow the operating system) | `dark` (default) | `light`.
     pub appearance_mode: String,
-    /// The theme shown in dark mode: `darkest` (default) | `dark`.
+    /// The theme shown in dark mode: `house` (Arthavan Dark, default) | `darkest` | `dark`.
     pub dark_theme: String,
     /// The theme shown in light mode: `light`.
     pub light_theme: String,
@@ -117,9 +117,9 @@ pub struct AppearancePrefs {
 impl Default for AppearancePrefs {
     fn default() -> Self {
         Self {
-            color_theme: "darkest".into(),
+            color_theme: "house".into(),
             appearance_mode: "dark".into(),
-            dark_theme: "darkest".into(),
+            dark_theme: "house".into(),
             light_theme: "light".into(),
             favorite_themes: Vec::new(),
             accessible_contrast: false,
@@ -911,7 +911,7 @@ const STARTUP: &[(&str, &str)] = &[("showHome", "Show Home"), ("openMostRecent",
 const OPENING: &[(&str, &str)] = &[("showOpenDialog", "Show Open Dialog"), ("showHome", "Show Home")];
 const BIN_OPEN: &[(&str, &str)] = &[("openInPlace", "Open in place"), ("openNewTab", "Open new tab"), ("openNewWindow", "Open in new window")];
 const PROJECT_OPEN: &[(&str, &str)] = &[("openNewTab", "Open new tab"), ("openNewWindow", "Open in new window")];
-const THEMES: &[(&str, &str)] = &[("darkest", "Darkest"), ("dark", "Dark"), ("light", "Light")];
+const THEMES: &[(&str, &str)] = &[("house", "Arthavan Dark"), ("darkest", "Darkest"), ("dark", "Dark"), ("light", "Light")];
 pub const APPEARANCE_MODES: &[(&str, &str)] = &[("auto", "Sync with system"), ("dark", "Dark"), ("light", "Light")];
 pub const UI_SCALES: &[(&str, &str)] = &[
     ("auto", "Auto (system)"),
@@ -924,7 +924,7 @@ pub const UI_SCALES: &[(&str, &str)] = &[
     ("250", "250%"),
     ("300", "300%"),
 ];
-pub const DARK_THEMES: &[(&str, &str)] = &[("darkest", "Darkest"), ("dark", "Dark")];
+pub const DARK_THEMES: &[(&str, &str)] = &[("house", "Arthavan Dark"), ("darkest", "Darkest"), ("dark", "Dark")];
 pub const LIGHT_THEMES: &[(&str, &str)] = &[("light", "Light")];
 const MIXDOWN: &[(&str, &str)] = &[("front", "Front Only"), ("frontRear", "Front + Rear"), ("frontLfe", "Front + LFE"), ("frontRearLfe", "Front + Rear + LFE")];
 const AUDITION: &[(&str, &str)] = &[("scratch", "Scratch disk location for Captured Audio"), ("nextToMedia", "Next to original media files")];

@@ -72,12 +72,12 @@ browser console instead.
 
 ### Building with craft-fonts
 
-Font assets live in [storytold/craft-fonts](https://github.com/storytold/craft-fonts), never in this
+Font assets live in [685ks/craft-fonts](https://github.com/685ks/craft-fonts), never in this
 repo ([standard](https://github.com/storytold/craftrules/blob/main/standards/fonts.md)). It is an optional build input, not a Cargo
 dependency:
 
 ```sh
-git clone https://github.com/storytold/craft-fonts ../craft-fonts
+git clone https://github.com/685ks/craft-fonts ../craft-fonts
 CRAFT_FONTS_DIR="$PWD/../craft-fonts" cargo run --release -p filmcraft
 ```
 
@@ -274,7 +274,7 @@ In short:
 - Screenshots show only FilmCraft (or other open projects) with media we generated or that is
   openly licensed.
 
-- **Fonts live in [storytold/craft-fonts](https://github.com/storytold/craft-fonts), not here.**
+- **Fonts live in [685ks/craft-fonts](https://github.com/685ks/craft-fonts), not here.**
   Don't commit new font files to this repo (the Latin UI fonts already in `assets/fonts/` stay): add
   the font to craft-fonts (file, licence, manifest line, `ATTRIBUTION.md` row) and use it through
   `filmcraft_text::fonts::CRAFT_FONTS`. See [Building with craft-fonts](#building-with-craft-fonts)

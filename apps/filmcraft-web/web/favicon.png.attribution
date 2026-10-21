@@ -1,7 +1,7 @@
 asset:        favicon.png
 title:        FilmCraft web app icon (favicon and loading image), 128 px
 author:       Brandon Thomas (FilmCraft owner), for the FilmCraft project
-source:       original work (drawn by the owner in ArtCraft, then vectorised)
+source:       original work (drawn by the upstream owner, then vectorised)
 license:      MIT OR Apache-2.0
 license-file: assets/app-icon/LICENSE.txt
 added:        2026-10-02 by Claude (agent) for Brandon Thomas
