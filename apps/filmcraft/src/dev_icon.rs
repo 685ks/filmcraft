@@ -199,7 +199,7 @@ fn unescape_string_value(value: &str) -> String {
     out
 }
 
-/// The `.desktop` body: same fields as `packaging/linux/app.freedev.ainz.ks.FilmCraft.desktop`, with
+/// The `.desktop` body: the fields the Linux packages installed, with
 /// `Exec` pointing at this exact binary (a dev build isn't on `$PATH`, so `TryExec` is left out)
 /// and the icon by theme name.
 fn desktop_file_content(app_id: &str, name: &str, exe: &str) -> String {
@@ -272,7 +272,15 @@ mod tests {
 
     #[test]
     fn desktop_file_matches_the_packaged_fields() {
-        let packaged = include_str!("../../../packaging/linux/app.freedev.ainz.ks.FilmCraft.desktop");
+        // The entry the Linux packages used to install (packaging/linux, removed with Linux
+        // packaging); a source-tree run still writes the same fields.
+        let packaged = "[Desktop Entry]\nType=Application\nName=FilmCraft\nGenericName=Video Editor\n\
+            Comment=Edit video, color and sound\nExec=filmcraft %F\nTryExec=filmcraft\n\
+            Icon=app.freedev.ainz.ks.FilmCraft\nTerminal=false\nStartupNotify=true\n\
+            StartupWMClass=app.freedev.ainz.ks.FilmCraft\nCategories=AudioVideo;Video;AudioVideoEditing;\n\
+            MimeType=application/x-filmcraft;video/mp4;video/x-m4v;video/quicktime;video/x-matroska;video/webm;\
+            video/vnd.avi;video/x-msvideo;application/mxf;video/mp2t;video/mpeg;video/3gpp;\n\
+            Keywords=video;editor;film;timeline;color;grading;nle;\n";
         let expected = packaged
             .lines()
             .filter(|l| !l.starts_with("TryExec="))

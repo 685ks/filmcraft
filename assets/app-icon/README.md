@@ -38,7 +38,7 @@ palette and traces the ink with potrace. Licence: [LICENSE.txt](LICENSE.txt) (MI
 | `filmcraft-macos-512.png` | runtime Dock icon on macOS (embedded by `apps/filmcraft/src/main.rs`) |
 | `filmcraft.icns` | macOS bundle icon (`CFBundleIconFile`) |
 | `filmcraft.ico` | Windows icon, 16–256 px (embedded in `filmcraft.exe` by `apps/filmcraft/build.rs`) |
-| `hicolor/<size>/apps/app.freedev.ainz.ks.FilmCraft.png`, `hicolor/scalable/…svg` | Linux icon theme, used by `packaging/linux/app.freedev.ainz.ks.FilmCraft.desktop` |
+| `hicolor/<size>/apps/app.freedev.ainz.ks.FilmCraft.png`, `hicolor/scalable/…svg` | Linux icon theme |
 
 The web app's `apps/filmcraft-web/web/favicon.png` (128 px) comes from the same artwork.
 
