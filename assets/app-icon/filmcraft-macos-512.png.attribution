@@ -1,8 +1,8 @@
 asset:        filmcraft-macos-512.png
-title:        FilmCraft app icon, macOS runtime Dock icon (512 px)
-author:       Brandon Thomas (FilmCraft owner), for the FilmCraft project
-source:       original work (drawn by the upstream owner, then vectorised)
+title:        FilmCraft app icon (a clapperboard)
+author:       FilmCraft contributors
+source:       original work (hand-written SVG in the Arthavan Projects house style)
 license:      MIT OR Apache-2.0
 license-file: assets/app-icon/LICENSE.txt
-added:        2026-10-02 by Claude (agent) for Brandon Thomas
-notes:        Rendered from filmcraft.svg with resvg by packaging/icons.sh, inside Apple's 824/1024 icon grid (transparent margin). Embedded in the app by apps/filmcraft/src/main.rs.
+added:        2026-10-22 by Claude (agent) for Ks
+notes:        Rendered from assets/app-icon/filmcraft.svg by packaging/icons.sh; replaces the upstream owner's drawing. See assets/app-icon/README.md.
