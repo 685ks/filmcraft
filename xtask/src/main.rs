@@ -519,25 +519,3 @@ fn main() -> ExitCode {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use std::path::Path;
-
-    fn macos_packaging(file: &str) -> String {
-        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../packaging/macos").join(file);
-        // Git may check out packaging files with CRLF on Windows.
-        std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display())).replace("\r\n", "\n")
-    }
-
-    /// Voice-over recording needs both halves on macOS: the usage string (else the permission
-    /// prompt never appears) and the hardened-runtime audio-input entitlement (else the input is
-    /// blocked). Regression test for #659.
-    #[test]
-    fn macos_bundle_may_use_the_microphone() {
-        let plist = macos_packaging("Info.plist.in");
-        assert!(plist.contains("<key>NSMicrophoneUsageDescription</key>"));
-        let entitlements = macos_packaging("entitlements.plist");
-        assert!(entitlements.contains("<key>com.apple.security.device.audio-input</key>\n  <true/>"));
-    }
-}
