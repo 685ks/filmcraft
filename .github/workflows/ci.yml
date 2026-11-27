@@ -2,7 +2,7 @@
 # dependency layering and asset attribution; the core crates' tests on Windows
 # with a check that the desktop app builds there; and the app's own unit tests (control
 # server and token, CLI parsing) with the automation bridge, the engine settings and the UI crate's
-# unit tests on Linux. The full workspace suite is `cargo xtask ci` (run it locally).
+# unit tests, also on Windows. The full workspace suite is `cargo xtask ci` (run it locally).
 #
 # Every action is pinned by commit SHA. Values from the event go through `env:`, never straight
 # into a `run:` script.
@@ -92,19 +92,11 @@ jobs:
         run: cargo check --locked -p filmcraft -p filmcraft-cli --bins
 
   app:
-    name: app tests (ubuntu-latest)
-    runs-on: ubuntu-latest
+    name: app tests (windows-latest)
+    runs-on: windows-latest
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-      - name: Free disk space and install Linux system dependencies
-        run: |
-          nohup sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup \
-            /opt/hostedtoolcache/CodeQL </dev/null >/dev/null 2>&1 &
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            libxkbcommon-dev libwayland-dev libx11-dev libxrandr-dev libxi-dev \
-            libgl1-mesa-dev libgtk-3-dev libasound2-dev
       - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
         with:
           toolchain: stable
